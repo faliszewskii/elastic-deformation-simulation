@@ -27,6 +27,8 @@ public:
     vector<Mesh<PositionNormalVertex>> meshes;
     string directory;
 
+    Model();
+
     // constructor, expects a filepath to a 3D model.
     Model(string const &path) {
         loadModel(path);

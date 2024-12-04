@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(opengl_template)
+project(elastic-deformation-simulation)
 
 set(CMAKE_CXX_STANDARD 26)
 
@@ -69,12 +69,18 @@ else()
     set(GLAD_GLEW
         dep/glew/glad.c
         dep/glew/glew_glfw.h
+            src/app/elastic/ElasticCube.cpp
+            src/app/elastic/ElasticCube.h
+            src/app/bernsteinCube/BernsteinCube.cpp
+            src/app/bernsteinCube/BernsteinCube.h
+            src/app/collision/CollisionBox.cpp
+            src/app/collision/CollisionBox.h
     )
 
 endif()
 
 # Add executables
-add_executable(OpenGL_Template
+add_executable(elastic-deformation-simulation
         # Dependencies
         ${IMGUI_SRC}
         # Application
@@ -86,7 +92,7 @@ add_executable(OpenGL_Template
 
 # Link libraries
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")             # macOS
-    target_link_libraries(OpenGL_Template
+    target_link_libraries(elastic-deformation-simulation
             ${CMAKE_SOURCE_DIR}/dep/lib/libglfw.3.4.dylib
             ${CMAKE_SOURCE_DIR}/dep/lib/libGLEW.2.2.0.dylib
             "-framework OpenGL"
@@ -99,13 +105,13 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")        # Windows
     find_package(glm CONFIG REQUIRED)
     find_package(OpenGL REQUIRED)
     include_directories( ${OPENGL_INCLUDE_DIRS})
-    target_link_libraries(OpenGL_Template PRIVATE
+    target_link_libraries(elastic-deformation-simulation PRIVATE
             glm::glm
             glfw
             ${OPENGL_LIBRARIES}
     )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")          # Linux
-    target_link_libraries(OpenGL_Template
+    target_link_libraries(elastic-deformation-simulation
             -lglfw
             -lGLEW
             -lGL

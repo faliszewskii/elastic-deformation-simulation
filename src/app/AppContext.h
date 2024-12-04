@@ -13,6 +13,10 @@
 #include "entity/light/PointLight.h"
 #include "entity/point/Point.h"
 #include "../opengl/model/Model.h"
+#include "elastic/ElasticCube.h"
+#include "bernsteinCube/BernsteinCube.h"
+#include "entity/cube/InvertedCube.h"
+#include "entity/line/Line.h"
 
 struct AppContext {
     AppContext() = default;
@@ -21,14 +25,30 @@ struct AppContext {
     std::unique_ptr<FrameBufferManager> frameBufferManager;
 
     // Shaders
+    std::unique_ptr<Shader> jellyShader;
     std::unique_ptr<Shader> phongShader;
     std::unique_ptr<Shader> pointShader;
+    std::unique_ptr<Shader> patchC0Shader;
+    std::unique_ptr<Shader> colorShader;
 
-    // TODO --- App data goes here
     std::unique_ptr<PointLight> light;
     std::unique_ptr<Point> lightBulb;
-    std::unique_ptr<Quad> quad;
     std::unique_ptr<Model> bunny;
+    std::unique_ptr<InvertedCube> invertedCube;
+
+    std::unique_ptr<ElasticCube> elasticCube;
+    std::unique_ptr<Point> massPoint;
+    std::unique_ptr<BernsteinCube> bernsteinCube;
+
+    std::array<Line, 4*4 + 4*4 + 4*4> bernsteinFrame;
+    std::array<Line, 12> frameFrame;
+    std::array<Line, 8> frameSprings;
+
+    float lastFrameTimeMs;
+    bool running;
+
+    bool drawBernstein;
+    bool drawFrame;
 };
 
 #endif //OPENGL_TEMPLATE_APPCONTEXT_H

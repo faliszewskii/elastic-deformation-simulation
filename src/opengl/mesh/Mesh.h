@@ -8,7 +8,7 @@
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #include "../../../dep/glad/glad_glfw.h"
 #else
-    #include "../../glew_glfw.h"
+    #include "../../dep/glew/glew_glfw.h"
 #endif
 #include <optional>
 #include "is_vertex.h"
@@ -19,6 +19,9 @@ class Mesh {
     std::optional<std::vector<unsigned int>> indices;
 public:
     int drawingMode;
+
+    [[nodiscard]] const std::vector<TVertex>& getVertices() { return vertices; };
+    [[nodiscard]] const std::optional<std::vector<unsigned int>>& getIndices() const { return indices; };
 
     explicit Mesh(std::vector<TVertex> vertices = std::vector<TVertex>(), std::optional<std::vector<unsigned int>> indices = {},
                   int drawingMode = GL_TRIANGLES) : vertices(std::move(vertices)), indices(std::move(indices)), drawingMode(drawingMode) {
@@ -35,9 +38,25 @@ public:
         glBindVertexArray(0);
     }
 
-    void update(std::vector<TVertex> &&newVertices, std::optional<std::vector<unsigned int>> &&newIndices = {}) {
+    void update(std::vector<TVertex> &&newVertices, std::optional<std::vector<unsigned int>> &&newIndices) {
         vertices = std::move(newVertices);
         indices = std::move(newIndices);
+
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TVertex), &vertices[0], GL_STATIC_DRAW);
+
+        if (indices) {
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.value().size() * sizeof(unsigned int), &indices.value()[0],
+                         GL_STATIC_DRAW);
+        }
+
+        glBindVertexArray(0);
+    }
+
+    void update(std::vector<TVertex> &&newVertices) {
+        vertices = std::move(newVertices);
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
