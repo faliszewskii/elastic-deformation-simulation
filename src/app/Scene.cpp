@@ -36,39 +36,49 @@ Scene::Scene(AppContext &appContext) : appContext(appContext) {
     appContext.bunny = std::make_unique<Model>("../res/models/stanfordBunny.obj");
     appContext.invertedCube = std::make_unique<InvertedCube>();
 
-    glm::vec3 center{};
-    int count = 0;
+    glm::vec3 minSize{};
+    glm::vec3 maxSize{};
     for(auto &mesh : appContext.bunny->meshes) {
         for(auto &vertex : mesh.getVertices()) {
-            center += vertex.position;
-            count++;
+            if(vertex.position.x < minSize.x)
+                minSize.x = vertex.position.x;
+            if(vertex.position.y < minSize.y)
+                minSize.y = vertex.position.y;
+            if(vertex.position.z < minSize.z)
+                minSize.z = vertex.position.z;
+            if(vertex.position.x > maxSize.x)
+                maxSize.x = vertex.position.x;
+            if(vertex.position.y > maxSize.y)
+                maxSize.y = vertex.position.y;
+            if(vertex.position.z > maxSize.z)
+                maxSize.z = vertex.position.z;
         }
     }
-    center /= count;
+    minSize.y+=0.033;
+    glm::vec3 translation = (maxSize + minSize) / 2.f;
+    glm::vec3 scale = {
+            maxSize.x - minSize.x,
+            maxSize.y - minSize.y,
+            maxSize.z - minSize.z
+
+    };
+
+    float scalingFactor = std::max(maxSize.x - minSize.x, std::max(maxSize.y - minSize.y, maxSize.z - minSize.z));
+
     for(auto &mesh : appContext.bunny->meshes) {
         std::vector<PositionNormalVertex> vertices;
         std::transform(mesh.getVertices().begin(), mesh.getVertices().end(), std::back_inserter(vertices),
-                       [center](auto &v){return PositionNormalVertex{v.position - center, v.normal};});
+                       [&](auto &v){return PositionNormalVertex{(v.position - translation)/scalingFactor + glm::vec3(0.5f), v.normal};});
         mesh.update(std::move(vertices));
     }
-    glm::vec3 size{};
-    for(auto &mesh : appContext.bunny->meshes) {
-        for(auto &vertex : mesh.getVertices()) {
-            if(std::abs(vertex.position.x) > size.x)
-                size.x = std::abs(vertex.position.x);
-            if(std::abs(vertex.position.y) > size.y)
-                size.y = std::abs(vertex.position.y);
-            if(std::abs(vertex.position.z) > size.z)
-                size.z = std::abs(vertex.position.z);
-        }
-    }
-    float scale = std::min(std::min(size.x, size.y), size.z) * 2.f;
-    for(auto &mesh : appContext.bunny->meshes) {
-        std::vector<PositionNormalVertex> vertices;
-        std::transform(mesh.getVertices().begin(), mesh.getVertices().end(), std::back_inserter(vertices),
-                       [scale](auto &v){return PositionNormalVertex{v.position/scale + glm::vec3(0.5f), v.normal};});
-        mesh.update(std::move(vertices));
-    }
+
+//    float scale = std::min(std::min(size.x, size.y), size.z) * 2.f;
+//    for(auto &mesh : appContext.bunny->meshes) {
+//        std::vector<PositionNormalVertex> vertices;
+//        std::transform(mesh.getVertices().begin(), mesh.getVertices().end(), std::back_inserter(vertices),
+//                       [scale](auto &v){return PositionNormalVertex{v.position/scale, v.normal};});
+//        mesh.update(std::move(vertices));
+//    }
 
     appContext.running = false;
     appContext.lastFrameTimeMs = glfwGetTime();
