@@ -57,6 +57,8 @@ public:
     static std::array<int, 3> toIndex3D(int index);
 
     glm::mat4 getSteeringMatrix() const;
+
+    glm::vec3 computeAcceleration(int i, glm::vec3 p, glm::vec3 v);
 };
 
 

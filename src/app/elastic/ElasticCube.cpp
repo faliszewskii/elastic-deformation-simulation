@@ -11,7 +11,7 @@
 ElasticCube::ElasticCube() : collisionBox(3) {
     farSprings = true;
     cornerSprings = true;
-    timeStepMs = 1;
+    timeStepMs = 2;
     gravity = 9.81;
     gravityOn = false;
     frameOn = false;
@@ -88,60 +88,82 @@ bool ElasticCube::isInRange(int x, int y, int z) { return x >= 0 && y >= 0 && z 
 int ElasticCube::fromIndex3D(int x, int y, int z) { return x + y * 4 + z * 16; }
 std::array<int, 3> ElasticCube::toIndex3D(int index) { return {index % 4, (index / 4) % 4, index / 16}; }
 
+
+
 void ElasticCube::advanceByStep() {
     float h = timeStepMs / 1000.f;
 
     glm::mat4 steeringMatrix = getSteeringMatrix();
 
-    for(int i = 0; i < 64; i++) {
+    for (int i = 0; i < 64; i++) {
         glm::vec3 v = velocities[i];
+        glm::vec3 p = positions[i];
 
-        positions[i] += v * h;
+        glm::vec3 k1_v = computeAcceleration(i, p, v);
+        glm::vec3 k1_p = v;
 
-        glm::vec3 a = -k * v;
-        float l0Side = cubeSize / 3;
-        for(auto &neighbour : sideNeighbours[i]) {
-            float l = glm::length(positions[i] - positions[neighbour]) - l0Side;
-            glm::vec3 d = glm::normalize(positions[i] - positions[neighbour]);
-            a -= c1 * l * d;
-        }
-        float l0Diag = (float)std::numbers::sqrt2 * cubeSize / 3;
-        for(auto &neighbour : diagonalNeighbours[i]) {
-            float l = glm::length(positions[i] - positions[neighbour]) - l0Diag;
-            glm::vec3 d = glm::normalize(positions[i] - positions[neighbour]);
-            a -= c1 * l * d;
-        }
-        if(farSprings) {
-            float l0Far = (float)std::numbers::sqrt3 * cubeSize / 3;
-            for(auto &neighbour : farNeighbours[i]) {
-                float l = glm::length(positions[i] - positions[neighbour]) - l0Far;
-                glm::vec3 d = glm::normalize(positions[i] - positions[neighbour]);
-                a -= c1 * l * d;
-            }
-        }
-        if(gravityOn) a += glm::vec3(0, -m*gravity, 0);
+        glm::vec3 k2_v = computeAcceleration(i, p + 0.5f * h * k1_p, v + 0.5f * h * k1_v);
+        glm::vec3 k2_p = v + 0.5f * h * k1_v;
 
-        if(frameOn) {
-            auto [x, y, z] = toIndex3D(i);
-            if((x == 0 || x == 3) && (y == 0 || y == 3) && (z == 0 || z == 3)) {
-                auto p = glm::vec3(z, y, x);
-                p = p*cubeSize/3.f - cubeSize/2;
-                p = glm::vec3(steeringMatrix * glm::vec4(p, 1));
-                float l = glm::length(positions[i] - p);
-                glm::vec3 d = glm::normalize(positions[i] - p);
-                if(!std::isnan(d.x))
-                    a -= c2 * l * d;
+        glm::vec3 k3_v = computeAcceleration(i, p + 0.5f * h * k2_p, v + 0.5f * h * k2_v);
+        glm::vec3 k3_p = v + 0.5f * h * k2_v;
 
-            }
-        }
+        glm::vec3 k4_v = computeAcceleration(i, p + h * k3_p, v + h * k3_v);
+        glm::vec3 k4_p = v + h * k3_v;
 
-        a /= m;
-
-        velocities[i] += a * h;
+        positions[i] += (h / 6.f) * (k1_p + 2.f * k2_p + 2.f * k3_p + k4_p);
+        velocities[i] += (h / 6.f) * (k1_v + 2.f * k2_v + 2.f * k3_v + k4_v);
 
         collisionBox.updateParticle(positions[i], velocities[i]);
     }
 }
+
+glm::vec3 ElasticCube::computeAcceleration(int i, glm::vec3 p, glm::vec3 v) {
+    glm::mat4 steeringMatrix = getSteeringMatrix();
+    glm::vec3 a = -k * v;
+    float l0Side = cubeSize / 3;
+
+    for (auto &neighbour : sideNeighbours[i]) {
+        float l = glm::length(p - positions[neighbour]) - l0Side;
+        glm::vec3 d = glm::normalize(p - positions[neighbour]);
+        a -= c1 * l * d;
+    }
+
+    float l0Diag = (float)std::numbers::sqrt2 * cubeSize / 3;
+    for (auto &neighbour : diagonalNeighbours[i]) {
+        float l = glm::length(p - positions[neighbour]) - l0Diag;
+        glm::vec3 d = glm::normalize(p - positions[neighbour]);
+        a -= c1 * l * d;
+    }
+
+    if (farSprings) {
+        float l0Far = (float)std::numbers::sqrt3 * cubeSize / 3;
+        for (auto &neighbour : farNeighbours[i]) {
+            float l = glm::length(p - positions[neighbour]) - l0Far;
+            glm::vec3 d = glm::normalize(p - positions[neighbour]);
+            a -= c1 * l * d;
+        }
+    }
+
+    if (gravityOn) a += glm::vec3(0, -m * gravity, 0);
+
+    if (frameOn) {
+        auto [x, y, z] = toIndex3D(i);
+        if ((x == 0 || x == 3) && (y == 0 || y == 3) && (z == 0 || z == 3)) {
+            auto pFrame = glm::vec3(z, y, x);
+            pFrame = pFrame * cubeSize / 3.f - cubeSize / 2;
+            pFrame = glm::vec3(steeringMatrix * glm::vec4(pFrame, 1));
+            float l = glm::length(p - pFrame);
+            glm::vec3 d = glm::normalize(p - pFrame);
+            if (!std::isnan(d.x)) {
+                a -= c2 * l * d;
+            }
+        }
+    }
+
+    return a / m;
+}
+
 
 glm::mat4 ElasticCube::getSteeringMatrix() const {
     auto steeringMatrix = glm::identity<glm::mat4>();

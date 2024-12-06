@@ -24,6 +24,7 @@ void Gui::render() {
         if(ImGui::Button("Reset")) {
             appContext.elasticCube->reset();
         }
+        ImGui::DragFloat("Time step (ms)", &appContext.elasticCube->timeStepMs, 0.01, 0.1, 15);
         ImGui::Checkbox("Gravity", &appContext.elasticCube->gravityOn);
         ImGui::Checkbox("Frame", &appContext.elasticCube->frameOn);
         ImGui::DragFloat3("Frame translation", glm::value_ptr(appContext.elasticCube->steeringTranslation), 0.01);
