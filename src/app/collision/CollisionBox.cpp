@@ -3,19 +3,15 @@
 //
 
 #include <glm/geometric.hpp>
+#include <iostream>
+#include <glm/ext/matrix_transform.hpp>
 #include "CollisionBox.h"
 
 CollisionBox::CollisionBox(float side) {
+    modelMatrix = glm::identity<glm::mat4>();
+    transInvModel = modelMatrix;
     reflectionCoefficient = 0.99;
-    collisionTriggers = {
-            [side](glm::vec3 pos){ return pos.x < -side/2; },
-            [side](glm::vec3 pos){ return pos.x > side/2; },
-            [side](glm::vec3 pos){ return pos.y < -side/2; },
-            [side](glm::vec3 pos){ return pos.y > side/2; },
-            [side](glm::vec3 pos){ return pos.z < -side/2; },
-            [side](glm::vec3 pos){ return pos.z > side/2; },
-    };
-    plane = {
+    points = {
             {-side/2, 0, 0},
             {side/2, 0, 0},
             {0, -side/2, 0},
@@ -23,34 +19,45 @@ CollisionBox::CollisionBox(float side) {
             {0, 0, -side/2},
             {0, 0, side/2},
     };
-    planeNormals = {
+    normals = {
             {1, 0, 0},
-            {1, 0, 0},
+            {-1, 0, 0},
             {0, 1, 0},
-            {0, 1, 0},
+            {0, -1, 0},
             {0, 0, 1},
-            {0, 0, 1},
+            {0, 0, -1},
     };
 }
 
 void CollisionBox::updateParticle(glm::vec3 &position, glm::vec3 &velocity) {
-    bool collided = false;
+
+    bool colided = false;
     do {
-        collided = false;
-        for(int i = 0; i < collisionTriggers.size(); ++i) {
-            if(collisionTriggers[i](position)) {
-                collided = true;
-                // I method
-//                velocity -= (1+reflectionCoefficient) * elMul(velocity, planeNormals[i]);
-                // II method
-                velocity -= elMul(velocity, planeNormals[i]);
+        colided = false;
+        for(int i = 0; i < points.size(); ++i) {
+            glm::vec3 point = modelMatrix * glm::vec4(points[i], 1);
+            glm::vec3 normal = transInvModel * glm::vec4(normals[i], 0);
+            normal = glm::normalize(normal);
+            if(glm::dot((position - point), normal) < 0) {
+//                colided = true;
+                velocity = velocity - 2 *  glm::dot(velocity, normal) * normal;
                 velocity *= reflectionCoefficient;
-                position -= (1+reflectionCoefficient) * (elMul(planeNormals[i], position) - plane[i]);
+                auto proj = position - glm::dot(position - point, normal) * normal;
+                position = proj + reflectionCoefficient * (proj - position);
             }
         }
-    }while(collided);
+    } while(colided);
 }
 
 glm::vec3 CollisionBox::elMul(glm::vec3 u, glm::vec3 v) {
     return {v.x * u.x, v.y * u.y, v.z * u.z};
+}
+
+void CollisionBox::setModelMatrix(glm::mat4 m) {
+    modelMatrix = m;
+    transInvModel = glm::transpose(glm::inverse(m));
+}
+
+glm::mat4 CollisionBox::getModelMatrix() {
+    return modelMatrix;
 }

@@ -44,9 +44,13 @@ struct AppContext {
     std::array<Line, 12> frameFrame;
     std::array<Line, 8> frameSprings;
 
-    float lastFrameTimeMs;
-    bool running;
+    glm::vec3 boxTranslation;
+    glm::vec3 boxScale;
+    glm::quat boxRotation;
 
+    float lastFrameTimeMs;
+
+    bool running;
     bool drawBernstein;
     bool drawFrame;
 };

@@ -36,6 +36,43 @@ void Gui::render() {
                        glm::vec3(newAngle.x - oldAngle.x, newAngle.y - oldAngle.y, newAngle.z - oldAngle.z));
         }
 
+        modified = false;
+        modified |= ImGui::DragFloat3("Box translation", glm::value_ptr(appContext.boxTranslation), 0.01);
+        modified |= ImGui::DragFloat3("Box scale", glm::value_ptr(appContext.boxScale), 0.01, 0);
+        oldAngle = glm::eulerAngles(appContext.boxRotation);
+        newAngle = glm::vec3(oldAngle);
+        angleRef = static_cast<float *>(glm::value_ptr(newAngle));
+        if(ImGui::DragFloat3("Box rotation", glm::value_ptr(newAngle), 0.01)) {
+            modified = true;
+            appContext.boxRotation = addRotation(appContext.boxRotation,
+                                                                   glm::vec3(newAngle.x - oldAngle.x, newAngle.y - oldAngle.y, newAngle.z - oldAngle.z));
+        }
+        if(modified) {
+            auto boxMatrix = glm::identity<glm::mat4>();
+            auto eulerRotation = glm::eulerAngles(appContext.boxRotation);
+            glm::mat4 Rx = {
+                    {1,0,0,0},
+                    {0, cos(eulerRotation.x), sin(eulerRotation.x), 0},
+                    {0, -sin(eulerRotation.x), cos(eulerRotation.x), 0},
+                    {0, 0, 0, 1}
+            };
+            glm::mat4 Ry = {
+                    {cos(eulerRotation.y),0,-sin(eulerRotation.y),0},
+                    {0, 1, 0, 0},
+                    {sin(eulerRotation.y), 0, cos(eulerRotation.y), 0},
+                    {0, 0, 0, 1}
+            };
+            glm::mat4 Rz = {
+                    {cos(eulerRotation.z),sin(eulerRotation.z),0,0},
+                    {-sin(eulerRotation.z), cos(eulerRotation.z), 0, 0},
+                    {0, 0, 1, 0},
+                    {0, 0, 0, 1}
+            };
+            boxMatrix = glm::translate(boxMatrix, appContext.boxTranslation) * Rz * Ry * Rx;
+            boxMatrix = glm::scale(boxMatrix, appContext.boxScale);
+            appContext.elasticCube->collisionBox.setModelMatrix(boxMatrix);
+        }
+
         if(ImGui::DragFloat("Cube size", &appContext.elasticCube->cubeSize, 0.01, 0.1, 5)) {
             appContext.elasticCube->reset();
         }

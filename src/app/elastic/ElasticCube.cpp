@@ -22,6 +22,7 @@ ElasticCube::ElasticCube() : collisionBox(3) {
     k = 1;
     steeringTranslation = {};
     steeringRotation = glm::identity<glm::quat>();
+    collisionBox = CollisionBox(3);
 
     reset();
 
@@ -234,7 +235,6 @@ std::array<glm::vec3, 16> ElasticCube::getSide(int side) {
 }
 
 void ElasticCube::reset() {
-    collisionBox = CollisionBox(3);
     velocities = {};
     float halfSize = cubeSize / 2.f;
     float distance = cubeSize / 3.f;

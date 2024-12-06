@@ -84,6 +84,9 @@ Scene::Scene(AppContext &appContext) : appContext(appContext) {
     appContext.lastFrameTimeMs = glfwGetTime();
     appContext.drawBernstein = false;
     appContext.drawFrame = true;
+
+    appContext.boxRotation = glm::identity<glm::quat>();
+    appContext.boxScale = glm::vec3(1);
 }
 
 void Scene::update() {
@@ -189,6 +192,7 @@ void Scene::render() {
     glm::mat4 roomModel = glm::identity<glm::mat4>();
     roomModel = glm::scale(roomModel, glm::vec3(3));
     roomModel = glm::translate(roomModel, -glm::vec3(0.5f));
+    roomModel = appContext.elasticCube->collisionBox.getModelMatrix() * roomModel;
 
     appContext.phongShader->use();
     appContext.phongShader->setUniform("viewPos", appContext.camera->getViewPosition());
