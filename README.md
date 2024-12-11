@@ -1,4 +1,4 @@
-# opengl-template
-Template for OpenGL applications
+# Elastic Deformation Simulation
+Simulation of elastic body using a set of 64 strings forming a Berstein cube with collisions and model deformation.
 
-![Zrzut ekranu z 2024-12-02 10-16-58](https://github.com/user-attachments/assets/55e4653c-3294-43f1-bc95-76a86d24753a)
+![image](https://github.com/user-attachments/assets/d5ba3d41-68b8-47f3-aae4-e4baef67b0fe)
