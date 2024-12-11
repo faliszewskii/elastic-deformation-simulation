@@ -7,9 +7,6 @@ out vec3 normal;
 out vec3 fragPos;
 out vec2 texCoords;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
 uniform vec3 controlPoints[64];
 uniform bool modifyNormals;
 
@@ -51,7 +48,7 @@ vec3 evaluate(vec3 uvw) {
             }
         }
     }
-return result;
+    return result;
 }
 
 vec3 evaluateDU(vec3 uvw) {
@@ -129,17 +126,15 @@ vec3 evaluateDW(vec3 uvw) {
 void main()
 {
     vec3 p = evaluate(aPos);
-    fragPos = vec3(model * vec4(p, 1.0));
-    gl_Position = projection * view * model * vec4(p, 1);
+    gl_Position = vec4(p, 1);
 
     mat3 T = mat3(
-        normalize(evaluateDU(aPos)),
-        normalize(evaluateDV(aPos)),
-        normalize(evaluateDW(aPos))
+    normalize(evaluateDU(aPos)),
+    normalize(evaluateDV(aPos)),
+    normalize(evaluateDW(aPos))
     );
 
     normal = aNormal;
     if(modifyNormals)
-        normal = transpose(inverse(T)) * normal;
-    texCoords = aTexCoords;
+        normal = transpose(inverse(T) ) * normal;
 }

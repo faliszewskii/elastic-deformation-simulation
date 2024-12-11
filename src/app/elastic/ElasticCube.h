@@ -31,6 +31,7 @@ public:
     bool cornerSprings;
 
     glm::vec3 steeringTranslation;
+    glm::vec3 steeringScale;
     glm::quat steeringRotation;
 
     float m;

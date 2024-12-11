@@ -26,7 +26,7 @@ public:
     CollisionBox(float side);
 
     void setModelMatrix(glm::mat4 m);
-    void updateParticle(glm::vec3 &position, glm::vec3 &velocity);
+    void updateParticle(glm::vec3 prevPosition, glm::vec3 &position, glm::vec3 &velocity);
 
     static glm::vec3 elMul(glm::vec3 u, glm::vec3 v) ;
 

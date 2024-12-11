@@ -29,7 +29,7 @@ CollisionBox::CollisionBox(float side) {
     };
 }
 
-void CollisionBox::updateParticle(glm::vec3 &position, glm::vec3 &velocity) {
+void CollisionBox::updateParticle(glm::vec3 prevPosition, glm::vec3 &position, glm::vec3 &velocity) {
 
     bool colided = false;
     do {
@@ -42,8 +42,15 @@ void CollisionBox::updateParticle(glm::vec3 &position, glm::vec3 &velocity) {
 //                colided = true;
                 velocity = velocity - 2 *  glm::dot(velocity, normal) * normal;
                 velocity *= reflectionCoefficient;
-                auto proj = position - glm::dot(position - point, normal) * normal;
-                position = proj + reflectionCoefficient * (proj - position);
+
+                float projDist = glm::dot(position - point, normal);
+                float dist  = glm::distance(prevPosition, position);
+                auto penetrationDist = dist * projDist / dist;
+                auto incomingDir = glm::normalize(prevPosition - position);
+                auto intersection = position + (prevPosition - position) * projDist / dist;
+                auto reflection = 2 * glm::dot(incomingDir, normal) * normal - incomingDir;
+                reflection *= penetrationDist * reflectionCoefficient;
+                position = intersection + reflection;
             }
         }
     } while(colided);

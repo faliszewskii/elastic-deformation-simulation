@@ -21,6 +21,7 @@ ElasticCube::ElasticCube() : collisionBox(3) {
     c2 = 10;
     k = 1;
     steeringTranslation = {};
+    steeringScale = glm::vec3(1.f);
     steeringRotation = glm::identity<glm::quat>();
     collisionBox = CollisionBox(3);
 
@@ -114,7 +115,7 @@ void ElasticCube::advanceByStep() {
         positions[i] += (h / 6.f) * (k1_p + 2.f * k2_p + 2.f * k3_p + k4_p);
         velocities[i] += (h / 6.f) * (k1_v + 2.f * k2_v + 2.f * k3_v + k4_v);
 
-        collisionBox.updateParticle(positions[i], velocities[i]);
+        collisionBox.updateParticle(p, positions[i], velocities[i]);
     }
 }
 
@@ -187,6 +188,7 @@ glm::mat4 ElasticCube::getSteeringMatrix() const {
             {0, 0, 0, 1}
     };
     steeringMatrix = glm::translate(steeringMatrix, steeringTranslation) * Rz * Ry * Rx;
+    steeringMatrix = glm::scale(steeringMatrix, steeringScale);
     return steeringMatrix;
 }
 

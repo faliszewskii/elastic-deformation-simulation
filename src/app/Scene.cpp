@@ -21,6 +21,8 @@ Scene::Scene(AppContext &appContext) : appContext(appContext) {
             "../res/shaders/patch/patch.vert", "../res/shaders/patch/patch.tesc", "../res/shaders/patch/patch.tese", "../res/shaders/patch/patch.frag"));
     appContext.colorShader = std::make_unique<Shader>(Shader::createTraditionalShader(
             "../res/shaders/basic/position.vert", "../res/shaders/basic/color.frag"));
+    appContext.normalShader = std::make_unique<Shader>(Shader::createTraditionalShader(
+            "../res/shaders/helper/jellyNormal.vert", "../res/shaders/helper/normal.geom", "../res/shaders/helper/normal.frag"));
 
     appContext.light = std::make_unique<PointLight>();
     appContext.light->position = {-0.5f , 0.5f, 0.5f};
@@ -84,6 +86,8 @@ Scene::Scene(AppContext &appContext) : appContext(appContext) {
     appContext.lastFrameTimeMs = glfwGetTime();
     appContext.drawBernstein = false;
     appContext.drawFrame = true;
+    appContext.displayNormals = false;
+    appContext.modifiedNormals = true;
 
     appContext.boxRotation = glm::identity<glm::quat>();
     appContext.boxScale = glm::vec3(1);
@@ -187,7 +191,18 @@ void Scene::render() {
     appContext.jellyShader->setUniform("material.albedo", glm::vec4(1.0f, 0.5f, 0.5f, 1.0f));
     appContext.jellyShader->setUniform("model", glm::identity<glm::mat4>());
     appContext.jellyShader->setUniform("controlPoints", appContext.elasticCube->positions.begin(), 64);
+    appContext.jellyShader->setUniform("modifyNormals", appContext.modifiedNormals);
     appContext.bunny->render();
+
+    if(appContext.displayNormals) {
+        appContext.normalShader->use();
+        appContext.normalShader->setUniform("view", appContext.camera->getViewMatrix());
+        appContext.normalShader->setUniform("projection", appContext.camera->getProjectionMatrix());
+        appContext.normalShader->setUniform("model", glm::identity<glm::mat4>());
+        appContext.normalShader->setUniform("controlPoints", appContext.elasticCube->positions.begin(), 64);
+        appContext.normalShader->setUniform("modifyNormals", appContext.modifiedNormals);
+        appContext.bunny->render();
+    }
 
     glm::mat4 roomModel = glm::identity<glm::mat4>();
     roomModel = glm::scale(roomModel, glm::vec3(3));

@@ -30,6 +30,7 @@ struct AppContext {
     std::unique_ptr<Shader> pointShader;
     std::unique_ptr<Shader> patchC0Shader;
     std::unique_ptr<Shader> colorShader;
+    std::unique_ptr<Shader> normalShader;
 
     std::unique_ptr<PointLight> light;
     std::unique_ptr<Point> lightBulb;
@@ -50,6 +51,8 @@ struct AppContext {
 
     float lastFrameTimeMs;
 
+    bool modifiedNormals;
+    bool displayNormals;
     bool running;
     bool drawBernstein;
     bool drawFrame;

@@ -27,7 +27,10 @@ void Gui::render() {
         ImGui::DragFloat("Time step (ms)", &appContext.elasticCube->timeStepMs, 0.01, 0.1, 15);
         ImGui::Checkbox("Gravity", &appContext.elasticCube->gravityOn);
         ImGui::Checkbox("Frame", &appContext.elasticCube->frameOn);
+        ImGui::SeparatorText("Frame transform");
         ImGui::DragFloat3("Frame translation", glm::value_ptr(appContext.elasticCube->steeringTranslation), 0.01);
+        ImGui::DragFloat3("Frame scale", glm::value_ptr(appContext.elasticCube->steeringScale), 0.01, 0.01, 10);
+
         bool modified = false;
         auto oldAngle = glm::eulerAngles(appContext.elasticCube->steeringRotation);
         auto newAngle = glm::vec3(oldAngle);
@@ -37,6 +40,7 @@ void Gui::render() {
                        glm::vec3(newAngle.x - oldAngle.x, newAngle.y - oldAngle.y, newAngle.z - oldAngle.z));
         }
 
+        ImGui::SeparatorText("Box transform");
         modified = false;
         modified |= ImGui::DragFloat3("Box translation", glm::value_ptr(appContext.boxTranslation), 0.01);
         modified |= ImGui::DragFloat3("Box scale", glm::value_ptr(appContext.boxScale), 0.01, 0);
@@ -74,6 +78,7 @@ void Gui::render() {
             appContext.elasticCube->collisionBox.setModelMatrix(boxMatrix);
         }
 
+        ImGui::SeparatorText("Simulation params");
         if(ImGui::DragFloat("Cube size", &appContext.elasticCube->cubeSize, 0.01, 0.1, 5)) {
             appContext.elasticCube->reset();
         }
@@ -97,8 +102,10 @@ void Gui::render() {
         }
     }
     if(ImGui::CollapsingHeader("Visualization")) {
-        ImGui::Checkbox("Draw bernstein grid", &appContext.drawBernstein);
-        ImGui::Checkbox("Draw frame", &appContext.drawFrame);
+        ImGui::Checkbox("Display bernstein grid", &appContext.drawBernstein);
+        ImGui::Checkbox("Display frame", &appContext.drawFrame);
+        ImGui::Checkbox("Modify Normals", &appContext.modifiedNormals);
+        ImGui::Checkbox("Display Normals", &appContext.displayNormals);
     }
     if(ImGui::CollapsingHeader("Light")) {
         renderLightUI(*appContext.light);
